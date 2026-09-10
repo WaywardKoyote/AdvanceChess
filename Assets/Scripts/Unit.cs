@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class Unit : MonoBehaviour, IPointerDownHandler
 {
@@ -13,6 +14,8 @@ public class Unit : MonoBehaviour, IPointerDownHandler
     public int movementRange = 3;
 
     public Player owner;
+
+    public List<Tile> path;
 
     // Update is called once per frame
     void Update()
@@ -37,6 +40,13 @@ public class Unit : MonoBehaviour, IPointerDownHandler
         {
             transform.position = targetPosition;
             isMoving = false;
+
+            path.RemoveAt(0);
+
+            if (path.Count > 0)
+            {
+                MoveTo(path[0].transform.position, path[0].gridPosition);
+            }
         }
     }
 

@@ -449,6 +449,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &885237257 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+  m_PrefabInstance: {fileID: 2002332221}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9dae0f9b70c9f24c95be9b80561dbb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unit
 --- !u!1001 &934858625
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -506,6 +517,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2064653840}
     - target: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+      propertyPath: movementRange
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
       propertyPath: gridPosition.x
       value: 5
       objectReference: {fileID: 0}
@@ -519,6 +534,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+--- !u!114 &996166675 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+  m_PrefabInstance: {fileID: 934858625}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9dae0f9b70c9f24c95be9b80561dbb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unit
 --- !u!1 &1125910977
 GameObject:
   m_ObjectHideFlags: 0
@@ -566,8 +592,39 @@ MonoBehaviour:
   width: 10
   height: 10
   tilePrefab: {fileID: 5363301272567937292, guid: 968b14ee9b27e79428f33c11d6b48e4c, type: 3}
+  valueMap: 4321223456432123456543212345654321234565432122345643212223454322123456543212234554321234564322122345
   lightMaterial: {fileID: 2100000, guid: cceec3562e3259641ad97a46e68b7127, type: 2}
   darkMaterial: {fileID: 2100000, guid: b50c901c4c932d048825b5df967b9530, type: 2}
+  terrainColors:
+    serializedVersion: 2
+    key0: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
+    key1: {r: 0.35955027, g: 1, b: 0.3176471, a: 1}
+    key2: {r: 0.04127407, g: 0.33962262, b: 0, a: 0}
+    key3: {r: 0.49056602, g: 0.2594408, b: 0.11801351, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 18504
+    ctime2: 36815
+    ctime3: 65535
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 4
+    m_NumAlphaKeys: 2
 --- !u!1001 &1229211121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -625,6 +682,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2064653840}
     - target: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+      propertyPath: movementRange
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
       propertyPath: gridPosition.x
       value: 8
       objectReference: {fileID: 0}
@@ -638,6 +699,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+--- !u!114 &1293535039 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+  m_PrefabInstance: {fileID: 1229211121}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9dae0f9b70c9f24c95be9b80561dbb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unit
 --- !u!1 &1728955213
 GameObject:
   m_ObjectHideFlags: 0
@@ -774,6 +846,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2064653840}
     - target: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
+      propertyPath: movementRange
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4411678391821123988, guid: d291b337b2e63984da390fa331ac00b2, type: 3}
       propertyPath: gridPosition.x
       value: 4
       objectReference: {fileID: 0}
@@ -831,7 +907,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a961338ba4b5eb1469deb218349838c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  gridManager: {fileID: 0}
+  playerUnits:
+  - {fileID: 885237257}
+  - {fileID: 1293535039}
+  - {fileID: 996166675}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
