@@ -11,12 +11,23 @@ public class Unit : MonoBehaviour, IPointerDownHandler
 
     private const float STOPPING_DISTANCE = 0.01f;
 
+    public UnitStats stats;
+
     public int movementRange = 3;
+    public int attackRange = 1;
 
     public Player owner;
 
     public List<Tile> path;
 
+    void Start()
+    {
+        stats = new UnitStats(Random.Range(0, 100), Random.Range(0, 100));
+        movementRange = Mathf.RoundToInt(stats.speed * 0.1f);
+        attackRange = Mathf.RoundToInt(stats.perception * 0.05f);
+        attackRange = Mathf.Clamp(attackRange, 1, int.MaxValue);
+    }
+    
     // Update is called once per frame
     void Update()
     {

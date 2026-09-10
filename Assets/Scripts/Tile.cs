@@ -13,6 +13,7 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     private Renderer tileRenderer;
     public static Tile selectedTile;
     public bool inMoveRange = false;
+    public bool inAttackRange = false;
 
     public int moveCost = 0;
 
@@ -47,7 +48,7 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     {
         if (selectedTile != this)
         {
-            ChangeColor(inMoveRange ? Color.cyan : originalColor);
+            ChangeColor(inMoveRange ? Color.cyan : inAttackRange ? Color.red : originalColor);
         }
     }
 

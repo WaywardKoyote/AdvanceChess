@@ -18,7 +18,7 @@ public class Player : MonoBehaviour
     public void ChangeSelectedUnit(Unit unit)
     {
         selectedUnit = unit;
-        gridManager.HighlightMoveRange(gridManager.GetTile(unit.gridPosition), unit.movementRange);
+        gridManager.HighlightRange(gridManager.GetTile(unit.gridPosition), unit.movementRange, unit.attackRange);
     }
 
     private void SnapUnits()
