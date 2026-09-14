@@ -60,6 +60,7 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
         if (Player.selectedUnit)
         {
+            if (Player.selectedUnit.isMoving) return;
             if (inMoveRange)
             {
                 gridManager.GetTile(Player.selectedUnit.gridPosition).isOccupied = false;
@@ -72,6 +73,9 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
                 Player.selectedUnit = null;
             }
         }
+
+        SelectTile();
+        gridManager.ResetGridHighlights();
 
         /* DEPRECATED
         FindAnyObjectByType<GridManager>().HighlightMoveRange(this, FindAnyObjectByType<Unit>().movementRange);   //TODO Replace with a not cursed version of this line (FindAnyObjectByType is SLOW)

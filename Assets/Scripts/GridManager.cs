@@ -105,7 +105,7 @@ public class GridManager : MonoBehaviour
         return dx == 1 && dy == 1;  //If the difference of both is 1, it's diagonal
     }
 
-    private void ResetGridHighlights()
+    public void ResetGridHighlights()
     {
         foreach (Tile tile in map)
         {
@@ -216,7 +216,7 @@ public class GridManager : MonoBehaviour
         return map[x,y];
     }
 
-    private int GetHeuristic (Tile start, Tile end)
+    public int GetHeuristic (Tile start, Tile end)
     {
         return Mathf.Abs(start.gridPosition.x - end.gridPosition.x) + Mathf.Abs(start.gridPosition.y + end.gridPosition.y); //Gets "Manhatten Distance" between two points
     }
@@ -280,5 +280,40 @@ public class GridManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public Tile GetClosestAttackTile(Unit target, Unit attacker)
+    {
+        List<Tile> attackTiles = new List<Tile>();
+        int attackRange = attacker.attackRange;
+
+        foreach (Tile tile in map)
+        {
+            if (tile.inMoveRange && !tile.isOccupied)
+            {
+                float distanceToTarget = GetHeuristic(GetTile(target.gridPosition), tile);
+
+                if (distanceToTarget < attackRange)
+                {
+                    attackTiles.Add(tile);
+                }
+            }
+        }
+
+        Tile closestTile = null;
+        float bestDistance = float.MaxValue;
+
+        foreach (Tile tile in attackTiles)
+        {
+            float distanceToAttacker = GetHeuristic(GetTile(attacker.gridPosition), tile);
+            
+            if (distanceToAttacker < bestDistance)
+            {
+                closestTile = tile;
+                bestDistance = distanceToAttacker;
+            }
+        }
+
+        return closestTile;
     }
 }
