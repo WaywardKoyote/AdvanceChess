@@ -25,6 +25,11 @@ public class UIManager : MonoBehaviour
                 OpenMenu(managerMenu);
             }
         }
+        if (inputActions.Player.PauseMenu.WasPressedThisFrame())
+        {
+            Debug.Log("Quitting");
+            Application.Quit();
+        }
     }
 
     public void CloseMenu(CanvasGroup menu)

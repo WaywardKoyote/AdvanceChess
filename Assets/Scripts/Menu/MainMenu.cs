@@ -29,12 +29,12 @@ public class MainMenu : MonoBehaviour
 
     public void CloseOptions()
     {
-        Debug.Log("Quitting");
-        Application.Quit();
+        
     }
 
     public void QuitGame()
     {
-
+        Debug.Log("Quitting");
+        Application.Quit();
     }
 }
