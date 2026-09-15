@@ -11,13 +11,13 @@ public class GridManager : MonoBehaviour
     public GameObject tilePrefab;
     public string valueMap;
     public const int MAX_MOVE_COST = 5;
+    private Tile[,] map;
+    private float halfWidth => width / 2;
+    private float halfHeight => height / 2;
 
     [Header("Materials")]
-    public Material lightMaterial;
-    public Material darkMaterial;
+    public Material tileMaterial;
     public Gradient terrainColors;
-
-    private Tile[,] map;
 
     // Changed to Awake to put it first. Grid needs to be there before we do any of our other scripts
     void Awake()
@@ -33,22 +33,24 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                //Spawn Tile Prefab and attach it to the GridManager
-                Vector3 tilePosition = new Vector3(x - width / 2, 0, y - height / 2);   //Sets position at center
+                // Instantiate: Spawn Tile Prefab and attach it to the GridManager
+                Vector3 tilePosition = new Vector3(x - halfWidth, 0, y - halfHeight);   //Sets position at center
                 GameObject tile = Instantiate(tilePrefab, tilePosition, Quaternion.identity);   //Creates Tile
                 tile.name = $"Tile {x},{y}";
                 tile.transform.SetParent(transform);
 
-                Renderer renderer = tile.GetComponentInChildren<Renderer>();    //find and store the Renderer component in the Tile or its children
-
-                renderer.material = new Material((x+y) % 2 == 0 ? lightMaterial : darkMaterial);    //Set tile color based on position in grid
-
-                //Set tile position and add to map array. Assign default color
                 Tile tileScript = tile.GetComponent<Tile>();
-                tileScript.gridPosition = new Vector2Int(x, y);
-                tileScript.moveCost = valueMap[x * width + y] - '0';    //Converting a list of strings to integers. Subtrack the character '0' to subtrack it's character value (50) and "zero out" all our numbers (character code for 1 is 51, 2 is 52, etc.). Limits movement costs to single digit number only
+
+                // Assign Color
+                tileScript.tileRenderer.material = new Material(tileMaterial);    //Set tile color based on position in grid for checkered pattern: new Material((x+y) % 2 == 0 ? lightMaterial : darkMaterial);
+                int index = y * width + x;
+                tileScript.moveCost = valueMap[index] - '0';    //Converting a list of strings to integers. Subtrack the character '0' to subtrack it's character value (50) and "zero out" all our numbers (character code for 1 is 51, 2 is 52, etc.). Limits movement costs to single digit number only
                 float normalizedCost = (float)tileScript.moveCost / MAX_MOVE_COST;
                 tileScript.originalColor = tileScript.moveCost > MAX_MOVE_COST ? Color.red : terrainColors.Evaluate(normalizedCost);
+
+                // Assign Properties
+                tileScript.gridPosition = new Vector2Int(x, y);
+                tileScript.gridManager = this;
                 map[x, y] = tileScript;
 
                 /* //Deprecated. Replaced with 1 line version above
@@ -67,17 +69,25 @@ public class GridManager : MonoBehaviour
 
     private List<Tile> GetTileNeighbors(Vector2Int tilePosition, bool includeDiagonals)
     {
-        List<Tile> neighbors = new List<Tile>();
+        List<Tile> neighbors = new List<Tile>(8);
+        Tile centerTile = map[tilePosition.x, tilePosition.y];
 
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
             {
+                if (x == 0 && y == 0) continue;
+
                 int posX = tilePosition.x + x;
                 int posY = tilePosition.y + y;
 
                 if (posX < 0 || posY < 0 || posX >= width || posY >= height) continue;
 
+                if (!includeDiagonals && x != 0 && y != 0) continue;
+
+                neighbors.Add(map[posX, posY]);
+
+                /* Deprecated
                 Tile current = map[posX, posY];
 
                 if (current.gridPosition == tilePosition) continue;
@@ -85,6 +95,7 @@ public class GridManager : MonoBehaviour
                 if (!includeDiagonals && IsDiagonal(map[tilePosition.x, tilePosition.y], current)) continue;
 
                 neighbors.Add(current);
+                */
 
                 /* Deprecated
                 if((posX >= 0) && (posY >= 0) && (posX < width) && (posY < height) && (new Vector2Int(posX, posY) != tilePosition)) //if neighbor is on the board and is NOT the current tile
@@ -122,7 +133,7 @@ public class GridManager : MonoBehaviour
     {
         ResetGridHighlights();
 
-        List<Tile> moveTiles = new List<Tile>();
+        HashSet<Tile> moveTiles = new HashSet<Tile>();
         Dictionary<Tile, int> costSoFar = new Dictionary<Tile, int>();
         Queue<Tile> edge = new Queue<Tile>();
 
@@ -142,26 +153,31 @@ public class GridManager : MonoBehaviour
 
                 if (newCost <= moveRange && (!costSoFar.ContainsKey(neighbor) || newCost < costSoFar[neighbor]) && !neighbor.isOccupied) //check if new tile is in movement range and if the tile exists in dictionary already (or if the new cost is less than the previous). Also confirm new tile isn't occupied.
                 {
-                    costSoFar[neighbor] = newCost;
-                    edge.Enqueue(neighbor);
 
-                    if (!moveTiles.Contains(neighbor) && neighbor != startTile)
+                    if (!costSoFar.TryGetValue(neighbor, out int prevCost) || newCost < prevCost)
                     {
-                        moveTiles.Add(neighbor);
-                        neighbor.inMoveRange = true;
+                        costSoFar[neighbor] = newCost;
+                        edge.Enqueue(neighbor);
+
+                        if (neighbor != startTile && moveTiles.Add(neighbor))
+                        {
+                            neighbor.inMoveRange = true;
+                        }
                     }
+
                 }
             }
         }
 
         HashSet<Tile> attackTiles = new HashSet<Tile>();
+        Queue<(Tile tile, int distance)> attackQueue = new Queue<(Tile tile, int distance)>();
 
-        foreach (Tile origin in moveTiles.Concat(new List<Tile> { startTile }))
+        foreach (Tile origin in moveTiles)
         {
-            Queue<(Tile tile, int distance)> attackQueue = new Queue<(Tile, int)>();
-
             attackQueue.Enqueue((origin, 0));
-            HashSet<Tile> visited = new HashSet<Tile> { origin };
+            attackQueue.Enqueue((startTile, 0));
+
+            HashSet<Tile> visited = new HashSet<Tile> { startTile };
 
             while (attackQueue.Count > 0)
             {
@@ -180,7 +196,14 @@ public class GridManager : MonoBehaviour
             }
         }
 
+        List<Tile> result = new List<Tile>(moveTiles.Count + attackTiles.Count);
+        result.AddRange(attackTiles);
+        result.AddRange(moveTiles);
+        return result;
+
+        /* Deprecated
         return moveTiles.Concat(attackTiles).Distinct().ToList();
+        */
     }
 
     public void HighlightRange(Tile start, int moveRange, int attackRange)
@@ -207,18 +230,15 @@ public class GridManager : MonoBehaviour
 
     public Tile GetTile(Vector3 position)
     {
-        float offsetX = width / 2f; //Offsets necessary because we offset when generating tiles
-        float offsetY = height / 2f;
-
-        int x = Mathf.RoundToInt(position.x + offsetX);
-        int y = Mathf.RoundToInt(position.z + offsetY);
+        int x = Mathf.RoundToInt(position.x + halfWidth);
+        int y = Mathf.RoundToInt(position.z + halfHeight);
 
         return map[x,y];
     }
 
     public int GetHeuristic (Tile start, Tile end)
     {
-        return Mathf.Abs(start.gridPosition.x - end.gridPosition.x) + Mathf.Abs(start.gridPosition.y + end.gridPosition.y); //Gets "Manhatten Distance" between two points
+        return Mathf.Abs(start.gridPosition.x - end.gridPosition.x) + Mathf.Abs(start.gridPosition.y - end.gridPosition.y); //Gets "Manhatten Distance" between two points
     }
 
     private List<Tile> RetracePath(Tile start, Tile end)
@@ -237,44 +257,45 @@ public class GridManager : MonoBehaviour
         return path;
     }
 
-    public List<Tile> GetPath(Tile start, Tile end)
+    public List<Tile> GetPath(Tile start, Tile end, Tile ignoreOccupied = null)
     {
-        List<Tile> open = new List<Tile>();
+        var open = new PriorityQueue<Tile>();
         HashSet<Tile> closed = new HashSet<Tile>();
 
-        open.Add(start);
+        foreach(Tile t in map)
+        {
+            t.gCost = int.MaxValue;
+            t.hCost = 0;
+            t.parent = null;
+        }
 
         start.gCost = 0;
         start.hCost = GetHeuristic(start, end);
         start.parent = null;
 
+        open.Enqueue(start);
+
         while (open.Count > 0)
         {
-            Tile current = open.OrderBy(t => t.fCost).ThenBy(t => t.hCost).First(); //Sort the open list by tCost, then hCost, and assign the first in the list to current.
+            Tile current = open.Dequeue();
+            if (current == end) return RetracePath(start, end);
 
-            if (current == end)
-            {
-                return RetracePath(start, end);
-            }
-
-            open.Remove(current);
             closed.Add(current);
 
             foreach (Tile neighbor in GetTileNeighbors(current.gridPosition, true))
             {
-                if (closed.Contains(neighbor) || neighbor.isOccupied) continue;
+                if (closed.Contains(neighbor)) continue;
+                if (neighbor.isOccupied && neighbor != ignoreOccupied) continue;
 
                 int tempG = current.gCost + neighbor.moveCost;
 
-                if (!open.Contains(neighbor) || tempG < neighbor.gCost)
+                if (tempG < neighbor.gCost || neighbor.parent == null)
                 {
                     neighbor.gCost = tempG;
                     neighbor.hCost = GetHeuristic(neighbor, end);
                     neighbor.parent = current;
-                    if (!open.Contains(neighbor))
-                    {
-                        open.Add(neighbor);
-                    }
+
+                    open.Enqueue(neighbor);
                 }
             }
         }
@@ -284,9 +305,12 @@ public class GridManager : MonoBehaviour
 
     public Tile GetClosestAttackTile(Unit target, Unit attacker)
     {
-        List<Tile> attackTiles = new List<Tile>();
+        Tile targetTile = GetTile(target.gridPosition);
+        Tile closestTile = null;
+        int bestDistance = int.MaxValue;
         int attackRange = attacker.attackRange;
 
+        /* Deprecated
         foreach (Tile tile in map)
         {
             if (tile.inMoveRange && !tile.isOccupied)
@@ -302,10 +326,16 @@ public class GridManager : MonoBehaviour
 
         Tile closestTile = null;
         float bestDistance = float.MaxValue;
+        */
 
-        foreach (Tile tile in attackTiles)
+        foreach (Tile tile in map)
         {
-            float distanceToAttacker = GetHeuristic(GetTile(attacker.gridPosition), tile);
+            if (!tile.inMoveRange || tile.isOccupied) continue;
+
+            int distanceToTarget = GetHeuristic(targetTile, tile);
+            if (distanceToTarget > attackRange) continue;
+
+            int distanceToAttacker = GetHeuristic(GetTile(attacker.gridPosition), tile);
             
             if (distanceToAttacker < bestDistance)
             {

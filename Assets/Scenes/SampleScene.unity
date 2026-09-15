@@ -1276,8 +1276,7 @@ MonoBehaviour:
   height: 10
   tilePrefab: {fileID: 5363301272567937292, guid: 968b14ee9b27e79428f33c11d6b48e4c, type: 3}
   valueMap: 4321223456432123456543212345654321234565432122345643212223454322123456543212234554321234564322122345
-  lightMaterial: {fileID: 2100000, guid: cceec3562e3259641ad97a46e68b7127, type: 2}
-  darkMaterial: {fileID: 2100000, guid: b50c901c4c932d048825b5df967b9530, type: 2}
+  tileMaterial: {fileID: 2100000, guid: cceec3562e3259641ad97a46e68b7127, type: 2}
   terrainColors:
     serializedVersion: 2
     key0: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
@@ -1667,7 +1666,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   playerName: Enemy
-  gridManager: {fileID: 0}
+  gridManager: {fileID: 1125910979}
   playerUnits:
   - {fileID: 1146250514}
   isPlayerTurn: 0
@@ -1908,7 +1907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   playerName: Human
-  gridManager: {fileID: 0}
+  gridManager: {fileID: 1125910979}
   playerUnits:
   - {fileID: 885237257}
   - {fileID: 1293535039}

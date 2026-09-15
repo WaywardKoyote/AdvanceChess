@@ -15,14 +15,16 @@ public class Player : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        gridManager = FindAnyObjectByType<GridManager>();
+        if (gridManager == null) gridManager = FindAnyObjectByType<GridManager>();        
         SnapUnits();
     }
 
     public void ChangeSelectedUnit(Unit unit)
     {
         selectedUnit = unit;
-        gridManager.HighlightRange(gridManager.GetTile(unit.gridPosition), unit.movementLeft, unit.attackRange);
+        Tile unitTile = gridManager.GetTile(unit.gridPosition);
+        unitTile.SelectTile();
+        gridManager.HighlightRange(unitTile, unit.movementLeft, unit.attackRange);
     }
 
     private void SnapUnits()

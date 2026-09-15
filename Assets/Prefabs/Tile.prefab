@@ -46,6 +46,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Tile
   gridPosition: {x: 0, y: 0}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
+  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  selectedColor: {r: 0, g: 0, b: 1, a: 1}
+  tileRenderer: {fileID: 3139946902194938955}
+  inMoveRange: 0
+  inAttackRange: 0
+  moveCost: 0
+  isOccupied: 0
+  gCost: 2147483647
+  hCost: 0
+  parent: {fileID: 0}
+  gridManager: {fileID: 0}
 --- !u!1 &7360008502766109421
 GameObject:
   m_ObjectHideFlags: 0

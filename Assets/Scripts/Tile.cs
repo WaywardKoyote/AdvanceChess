@@ -1,7 +1,10 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
 
-public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IComparable<Tile>
 {
     public Vector2Int gridPosition;
 
@@ -10,7 +13,7 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     public Color highlightColor = Color.yellow;
     public Color selectedColor = Color.blue;
 
-    private Renderer tileRenderer;
+    public Renderer tileRenderer;
     public static Tile selectedTile;
     public bool inMoveRange = false;
     public bool inAttackRange = false;
@@ -24,6 +27,8 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     public int fCost => gCost + hCost;
 
     public Tile parent;
+
+    public GridManager gridManager;
 
     private void Start()
     {
@@ -46,18 +51,48 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (selectedTile != this)
+        if (selectedTile == this) return;
+        
+        if (inMoveRange)
         {
-            ChangeColor(inMoveRange ? Color.cyan : inAttackRange ? Color.red : originalColor);
+            ChangeColor(Color.cyan);
+        }
+        else if (inAttackRange)
+        {
+            ChangeColor(Color.red);
+        }
+        else
+        {
+            ChangeColor(originalColor);
         }
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        Unit selected = Player.selectedUnit;
+
+        if (selected == null || selected.isMoving) return;
+        if (!inMoveRange) return;
+
+        Tile startTile = gridManager.GetTile(selected.gridPosition);
+
+        List<Tile> path = gridManager.GetPath(startTile, this, startTile);
+
+        if (path == null || path.Count == 0) return;
+
+        int totalCost = 0;
+
+        foreach (Tile t in path) totalCost += t.moveCost;
+
+        if (totalCost > selected.movementLeft) return;
+
+        selected.MoveTo(path);
+
         SelectTile();
 
-        GridManager gridManager = GetComponentInParent<GridManager>();
+        gridManager.ResetGridHighlights();
 
+        /* Deprecated
         if (Player.selectedUnit)
         {
             if (Player.selectedUnit.isMoving) return;
@@ -76,13 +111,14 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
         SelectTile();
         gridManager.ResetGridHighlights();
+        */
 
         /* DEPRECATED
         FindAnyObjectByType<GridManager>().HighlightMoveRange(this, FindAnyObjectByType<Unit>().movementRange);   //TODO Replace with a not cursed version of this line (FindAnyObjectByType is SLOW)
         */
     }
 
-    private void SelectTile()
+    public void SelectTile()
     {
         if (selectedTile)
         {
@@ -91,5 +127,13 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
         selectedTile = this;
         ChangeColor(selectedColor);
+    }
+
+    public int CompareTo(Tile other)
+    {
+        int compare = fCost.CompareTo(other.fCost);
+        if (compare == 0) compare = hCost.CompareTo(other.hCost);
+
+        return compare;
     }
 }
