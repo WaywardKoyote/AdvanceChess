@@ -26,16 +26,22 @@ public class Unit : MonoBehaviour, IPointerDownHandler
     public int health;
     public int attackDamage;
 
+    public int attacksLeft = 1;
+
+    public bool isAI;
+
+    public int level = 1;
+    public float experience = 0f;
+    public float experienceToLevel = 100f;
+
+    public float physicalDefense;
+
     void Start()
     {
-        stats = new UnitStats(Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100));
-        movementRange = Mathf.RoundToInt(stats.speed * 0.1f);
-        attackRange = Mathf.RoundToInt(stats.perception * 0.05f);
-        attackRange = Mathf.Clamp(attackRange, 1, int.MaxValue);
+        stats = new UnitStats(Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100));
+        UpdateStatValues();
         movementLeft = movementRange;
-        maxHealth = 1 + Mathf.RoundToInt(stats.endurance * 0.25f);
         health = maxHealth;
-        attackDamage = 1 + Mathf.RoundToInt(stats.strength * 0.05f);
     }
     
     // Update is called once per frame
@@ -89,7 +95,8 @@ public class Unit : MonoBehaviour, IPointerDownHandler
             else
             {
                 isMoving = false;
-                owner.ChangeSelectedUnit(this);
+
+                if(!isAI) owner.ChangeSelectedUnit(this);
             }
         }
 
@@ -126,6 +133,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler
             owner.ChangeSelectedUnit(this);
             return;
         }
+
         /* Refactored
         else
         {
@@ -168,12 +176,12 @@ public class Unit : MonoBehaviour, IPointerDownHandler
 
         Tile closestAttackTile = owner.gridManager.GetClosestAttackTile(this, playerUnit);
 
-        if (closestAttackTile == null)
+        if (closestAttackTile == null && playerUnit.attacksLeft > 0)
         {
             playerUnit.Attack(this);
             return;
         }
-
+        
         List<Tile> path = owner.gridManager.GetPath(attackerTile, closestAttackTile);
 
         if (path == null || path.Count == 0)
@@ -210,9 +218,54 @@ public class Unit : MonoBehaviour, IPointerDownHandler
         Tile attackerTile = owner.gridManager.GetTile(gridPosition);
         Tile targetTile = owner.gridManager.GetTile(target.gridPosition);
 
-        if (owner.gridManager.GetHeuristic(attackerTile, targetTile) <= attackRange)
+        int distance = owner.gridManager.GetHeuristic(attackerTile, targetTile);
+
+        if (distance <= attackRange)
         {
+            attacksLeft--;
+            int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(attackDamage - target.physicalDefense, 0, target.maxHealth));
+            float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
+            experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
+            Debug.Log(this.name + " attacked " + target.name + " for " + damageToDeal.ToString() + " damage. " + target.name + " has " + (target.health - damageToDeal).ToString() + " health left.");
             target.TakeDamage(attackDamage);
+
+            experience += experienceToAdd;
+
+            if (experience >= experienceToLevel)
+            {
+                LevelUp();
+            }
         }
+    }
+
+    public bool IsUnitExpended()
+    {
+        if (movementLeft <= 0 && attacksLeft <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void UpdateStatValues()
+    {
+        movementRange = Mathf.RoundToInt(stats.speed * 0.1f);
+        attackRange = Mathf.RoundToInt(stats.perception * 0.05f);
+        attackRange = Mathf.Clamp(attackRange, 1, int.MaxValue);
+        maxHealth = 1 + Mathf.RoundToInt(stats.endurance * 0.25f);
+        attackDamage = Mathf.RoundToInt(stats.strength * 0.05f);
+        physicalDefense = Mathf.RoundToInt((stats.endurance * 0.02f) + (stats.strength * 0.01f));
+    }
+
+    private void LevelUp()
+    {
+        experience -= experienceToLevel;
+        experienceToLevel *= 1.5f;
+
+        stats.LevelUpStats();
+        UpdateStatValues();
     }
 }

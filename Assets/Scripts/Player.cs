@@ -11,12 +11,21 @@ public class Player : MonoBehaviour
     public List<Unit> playerUnits;
 
     public bool isPlayerTurn = false;
+    public bool readyToEndTurn = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (gridManager == null) gridManager = FindAnyObjectByType<GridManager>();        
         SnapUnits();
+    }
+
+    private void Update()
+    {
+        if (isPlayerTurn)
+        {
+            CheckUnits();
+        }
     }
 
     public void ChangeSelectedUnit(Unit unit)
@@ -44,6 +53,20 @@ public class Player : MonoBehaviour
         foreach (Unit unit in playerUnits)
         {
             unit.movementLeft = unit.movementRange;
+            unit.attacksLeft = 1;
         }
+    }
+
+    private void CheckUnits()
+    {
+        foreach (Unit unit in playerUnits)
+        {
+            if (!unit.IsUnitExpended())
+            {
+                return;
+            }
+        }
+
+        readyToEndTurn = true;
     }
 }

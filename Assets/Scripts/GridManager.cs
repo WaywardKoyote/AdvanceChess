@@ -11,7 +11,7 @@ public class GridManager : MonoBehaviour
     public GameObject tilePrefab;
     public string valueMap;
     public const int MAX_MOVE_COST = 5;
-    private Tile[,] map;
+    public Tile[,] map;
     private float halfWidth => width / 2;
     private float halfHeight => height / 2;
 
