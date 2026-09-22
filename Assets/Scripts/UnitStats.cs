@@ -12,6 +12,8 @@ public struct UnitStats
     public float spirit;
     public float mastery;
 
+    public const float STAT_VARIANCE = 5f;
+
     public UnitStats(float newSpeed, float newPerception, float newEndurance, float newStrength, float newLuck, float newIntellect, float newSpirit, float newMastery)
     {
         speed = newSpeed;
@@ -24,15 +26,40 @@ public struct UnitStats
         mastery = newMastery;
     }
 
-    public void LevelUpStats()
+    public void LevelUpStats(UnitStats classGrowths, UnitStats unitGrowths)
     {
-        speed += Random.Range(0, 10);
-        perception += Random.Range(0, 10);
-        endurance += Random.Range(0, 10);
-        strength += Random.Range(0, 10);
-        luck += Random.Range(0, 10);
-        intellect += Random.Range(0, 10);
-        spirit += Random.Range(0, 10);
-        mastery += Random.Range(0, 10);
+        float rand = Random.value;
+
+        ApplyGrowth(ref speed, classGrowths.speed + unitGrowths.speed, rand);
+        ApplyGrowth(ref perception, classGrowths.perception + unitGrowths.perception, rand);
+        ApplyGrowth(ref endurance, classGrowths.endurance + unitGrowths.endurance, rand);
+        ApplyGrowth(ref strength, classGrowths.strength + unitGrowths.strength, rand);
+        ApplyGrowth(ref luck, classGrowths.luck + unitGrowths.luck, rand);
+        ApplyGrowth(ref intellect, classGrowths.intellect + unitGrowths.intellect, rand);
+        ApplyGrowth(ref spirit, classGrowths.spirit + unitGrowths.spirit, rand);
+        ApplyGrowth(ref mastery, classGrowths.mastery + unitGrowths.mastery, rand);
+    }
+
+    public static float InitializeStatValue(float baseValue, float growth)
+    {
+        float min = Mathf.Clamp(baseValue - (growth * STAT_VARIANCE), 0, float.MaxValue);
+        float max = baseValue + (growth * STAT_VARIANCE);
+
+        return Mathf.Round(Random.Range(min, max));
+    }
+
+    private void ApplyGrowth(ref float stat, float growth, float rand)
+    {
+        if(growth > 1f)
+        {
+            int guaranteedIncrease = Mathf.FloorToInt(growth);
+            stat += guaranteedIncrease;
+            growth -= growth;
+        }
+
+        if (growth > rand)
+        {
+            stat++;
+        }
     }
 }

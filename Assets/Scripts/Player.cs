@@ -6,6 +6,8 @@ public class Player : MonoBehaviour
     public string playerName;
 
     public static Unit selectedUnit;
+    public static Unit hoverUnit;
+
     public GridManager gridManager;
 
     public List<Unit> playerUnits;
@@ -50,6 +52,8 @@ public class Player : MonoBehaviour
 
     public void ResetUnits()
     {
+        gridManager.ResetGridHighlights();
+
         foreach (Unit unit in playerUnits)
         {
             unit.movementLeft = unit.movementRange;

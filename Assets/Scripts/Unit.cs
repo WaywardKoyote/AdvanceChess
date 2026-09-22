@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using UnityEngine.UI;
 
-public class Unit : MonoBehaviour, IPointerDownHandler
+public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public Vector2Int gridPosition;
     public float moveSpeed = 5f;
@@ -36,9 +36,17 @@ public class Unit : MonoBehaviour, IPointerDownHandler
 
     public float physicalDefense;
 
+    public Image healthBar;
+
+    public UnitClass unitClass;
+    public UnitStats characterGrowths;
+
+    public string unitName;
+    public Sprite unitPortrait;
+
     void Start()
     {
-        stats = new UnitStats(Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100));
+        InitializeStats();
         UpdateStatValues();
         movementLeft = movementRange;
         health = maxHealth;
@@ -48,6 +56,8 @@ public class Unit : MonoBehaviour, IPointerDownHandler
     void Update()
     {
         HandleMovement();
+
+        healthBar.fillAmount = (float)health / (float)maxHealth;
     }
 
     public void MoveTo(List<Tile> newPath)
@@ -128,7 +138,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler
     // Called when the mouse is clicked, changes the selected Unit to this Unit
     public void OnPointerDown (PointerEventData eventData)
     {
-        if (owner.isPlayerTurn)
+        if (owner.isPlayerTurn && !IsUnitExpended())
         {
             owner.ChangeSelectedUnit(this);
             return;
@@ -172,13 +182,22 @@ public class Unit : MonoBehaviour, IPointerDownHandler
 
         int distance = owner.gridManager.GetHeuristic(unitTile, attackerTile);
 
-        if (distance > playerUnit.attackRange) return;
+        if (distance <= playerUnit.attackRange)
+        {
+            if (playerUnit.attacksLeft > 0)
+            {
+                playerUnit.Attack(this);
+            }
+            else
+            {
+                return;
+            }
+        }
 
         Tile closestAttackTile = owner.gridManager.GetClosestAttackTile(this, playerUnit);
 
-        if (closestAttackTile == null && playerUnit.attacksLeft > 0)
+        if (closestAttackTile == null)
         {
-            playerUnit.Attack(this);
             return;
         }
         
@@ -186,12 +205,10 @@ public class Unit : MonoBehaviour, IPointerDownHandler
 
         if (path == null || path.Count == 0)
         {
-            playerUnit.Attack(this);
+            return;
         }
-        else
-        {
-            playerUnit.MoveTo(path);
-        }
+
+        playerUnit.MoveTo(path);
     }
 
     public void Heal(int amount)
@@ -262,10 +279,53 @@ public class Unit : MonoBehaviour, IPointerDownHandler
 
     private void LevelUp()
     {
+        if (isAI) return;   // No levelling for AI
+
         experience -= experienceToLevel;
         experienceToLevel *= 1.5f;
+        level++;
 
-        stats.LevelUpStats();
+        stats.LevelUpStats(unitClass.classGrowths, characterGrowths);
         UpdateStatValues();
+
+        if (experience >= experienceToLevel)
+        {
+            LevelUp();
+        }
+    }
+
+    public void InitializeStats()
+    {
+        UnitStats baseClassStats = unitClass.baseStats;
+        UnitStats growthStats = unitClass.classGrowths;
+
+        stats = new UnitStats(
+            UnitStats.InitializeStatValue(baseClassStats.speed, growthStats.speed),
+            UnitStats.InitializeStatValue(baseClassStats.perception, growthStats.perception),
+            UnitStats.InitializeStatValue(baseClassStats.endurance, growthStats.endurance),
+            UnitStats.InitializeStatValue(baseClassStats.strength, growthStats.strength),
+            UnitStats.InitializeStatValue(baseClassStats.luck, growthStats.luck),
+            UnitStats.InitializeStatValue(baseClassStats.intellect, growthStats.intellect),
+            UnitStats.InitializeStatValue(baseClassStats.spirit, growthStats.spirit),
+            UnitStats.InitializeStatValue(baseClassStats.mastery, growthStats.mastery));
+    }
+
+    public void ExpendUnit()
+    {
+        movementLeft = 0;
+        attacksLeft = 0;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        Player.hoverUnit = this;
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (Player.hoverUnit == this)
+        {
+            Player.hoverUnit = null;
+        }
     }
 }

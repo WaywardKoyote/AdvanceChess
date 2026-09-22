@@ -21,6 +21,14 @@ public class PlayerAI : MonoBehaviour
 
     public AIBehaviours behaviour = AIBehaviours.Random;
 
+    private (int threshold, AIBehaviours behaviour)[] behaviourTable =
+    {
+        (25, AIBehaviours.Random),
+        (20, AIBehaviours.Dumb),
+        (15, AIBehaviours.Defensive),
+        (10, AIBehaviours.Aggressive)
+    };
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -40,6 +48,8 @@ public class PlayerAI : MonoBehaviour
     {
         if (player.isPlayerTurn)
         {
+            if (!activeUnit) activeUnit = units[0];
+
             CheckBehaviour();
             HandleUnitTurn();
             EndActiveUnitTurn();
@@ -161,26 +171,16 @@ public class PlayerAI : MonoBehaviour
     {
         int unitsLeft = player.playerUnits.Count;
 
-        if(unitsLeft > 25)
+        foreach (var entry in behaviourTable)
         {
-            behaviour = AIBehaviours.Random;
+            if (unitsLeft > entry.threshold)
+            {
+                behaviour = entry.behaviour;
+                return;
+            }
         }
-        else if (unitsLeft > 20)
-        {
-            behaviour = AIBehaviours.Dumb;
-        }
-        else if (unitsLeft > 15)
-        {
-            behaviour = AIBehaviours.Defensive;
-        }
-        else if (unitsLeft > 10)
-        {
-            behaviour = AIBehaviours.Aggressive;
-        }
-        else
-        {
-            behaviour = AIBehaviours.Smart;
-        }
+
+        behaviour = AIBehaviours.Smart;
     }
 
     private void HandleUnitTurn()
