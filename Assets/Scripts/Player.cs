@@ -33,9 +33,15 @@ public class Player : MonoBehaviour
     public void ChangeSelectedUnit(Unit unit)
     {
         selectedUnit = unit;
+        // selectedUnit.healthBarVis = 1;   TEST FIRST
         Tile unitTile = gridManager.GetTile(unit.gridPosition);
         unitTile.SelectTile();
         gridManager.HighlightRange(unitTile, unit.movementLeft, unit.attackRange);
+    }
+
+    public void DeselectUnit()
+    {
+        // selectedUnit.healthBarVis = 0;   TEST FIRST
     }
 
     private void SnapUnits()

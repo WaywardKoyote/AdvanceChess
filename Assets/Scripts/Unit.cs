@@ -36,6 +36,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     public float physicalDefense;
 
+    public CanvasGroup healthBarVis;
     public Image healthBar;
 
     public UnitClass unitClass;
