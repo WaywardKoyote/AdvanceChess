@@ -11,6 +11,7 @@ public class PlayerAI : MonoBehaviour
     public Unit activeUnit;
     public Unit targetUnit;
 
+    public bool nextMove;
     public float thinkingTime = 1f;
 
     public enum AIBehaviours
@@ -26,12 +27,12 @@ public class PlayerAI : MonoBehaviour
 
     private (string unitClass, AIBehaviours behaviour)[] behaviourTable =
     {
-        ("Pawn", AIBehaviours.Dumb),
+        ("Pawn", AIBehaviours.Aggressive),
         ("Rook", AIBehaviours.Aggressive),
-        ("Bishop", AIBehaviours.Smart),
-        ("Knight", AIBehaviours.Defensive),
-        ("Queen", AIBehaviours.Random),
-        ("King", AIBehaviours.Defensive)
+        ("Bishop", AIBehaviours.Aggressive),
+        ("Knight", AIBehaviours.Aggressive),
+        ("Queen", AIBehaviours.Aggressive),
+        ("King", AIBehaviours.Aggressive)
     };
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -41,6 +42,7 @@ public class PlayerAI : MonoBehaviour
         gridManager = player.gridManager;
         units.AddRange(player.playerUnits);
         activeUnit = units[0];
+        nextMove = true;
 
         foreach (Unit unit in units)
         {
@@ -55,7 +57,11 @@ public class PlayerAI : MonoBehaviour
         {
             if (!activeUnit) activeUnit = units[0];
 
-            StartCoroutine(TimedTurn(thinkingTime));
+            if (nextMove)
+            {
+                nextMove = false;
+                StartCoroutine(TimedTurn(thinkingTime));
+            }
         }
     }
 
@@ -173,7 +179,7 @@ public class PlayerAI : MonoBehaviour
     private void CheckBehaviour()
     {
         string unitsClassName = activeUnit.unitClass.name;
-
+        
         foreach (var entry in behaviourTable)
         {
             if (unitsClassName == entry.unitClass)
@@ -229,49 +235,67 @@ public class PlayerAI : MonoBehaviour
 
         if (targetUnit == null)
         {
-            activeUnit.movementLeft = 0;
-            activeUnit.attacksLeft = 0;
+            Debug.Log("Target Unit: NULL");
+            activeUnit.ExpendUnit();
             return;
         }
-
+        Debug.Log("Target Unit: " + targetUnit.name);
         int distance = gridManager.GetHeuristic(gridManager.GetTile(activeUnit.gridPosition), gridManager.GetTile(targetUnit.gridPosition));
 
         if (distance <= activeUnit.attackRange && activeUnit.attacksLeft > 0)
         {
+            Debug.Log("Target In Attack Range");
             activeUnit.Attack(targetUnit);
             return;
-        }
-        else
-        {
-            activeUnit.attacksLeft = 0;
         }
 
         if (targetTile == null)
         {
             targetTile = gridManager.GetClosestAttackTile(targetUnit, activeUnit);
+
+            if (targetTile == null)
+            {
+                targetTile = gridManager.GetClosestMoveTile(targetUnit, activeUnit);
+            }
         }
 
         if (targetTile != null)
         {
+            Debug.Log("TargetTile: " + targetTile.name);
             List<Tile> path = gridManager.GetPath(gridManager.GetTile(activeUnit.gridPosition), targetTile);
 
             if (path != null && path.Count > 0)
             {
+                if(distance <= (activeUnit.attackRange + activeUnit.movementLeft) && activeUnit.attacksLeft > 0)
+                {
+                    Debug.Log("Target in Moveable Range");
+                    activeUnit.MoveTo(path, false);
+                    StartCoroutine(DelayedAttack(activeUnit, targetUnit));
+                    return;
+                }
+                else
+                {
+                    activeUnit.attacksLeft = 0;
+                }
+
                 activeUnit.MoveTo(path, true);
             }
             else
             {
                 activeUnit.movementLeft = 0;
+                activeUnit.attacksLeft = 0;
             }
         }
         else
         {
+            Debug.Log("Target Tile: NULL");
             activeUnit.movementLeft = 0;
+            activeUnit.attacksLeft = 0;
         }
 
         if (activeUnit.IsUnitExpended())
         {
-            EndActiveUnitTurn();
+            activeUnit.ExpendUnit();
         }
     }
 
@@ -290,6 +314,8 @@ public class PlayerAI : MonoBehaviour
         {
             player.readyToEndTurn = true;
         }
+
+        nextMove = true;
 
         /*  REFACTORED
         gridManager.ResetGridHighlights();
@@ -319,13 +345,20 @@ public class PlayerAI : MonoBehaviour
 
         CheckBehaviour();
         HandleUnitTurn();
+        StartCoroutine(ActiveUnitTurnLag());
+    }
+
+    IEnumerator ActiveUnitTurnLag()
+    {
+        yield return new WaitUntil(() => !activeUnit.isMoving);
+
         EndActiveUnitTurn();
     }
 
-    IEnumerator ActiveUnitTurnLag(float delay)
+    IEnumerator DelayedAttack(Unit attackingUnit, Unit targetUnit)
     {
-        yield return new WaitForSeconds(delay);
+        yield return new WaitUntil(() => !activeUnit.isMoving);
 
-        EndActiveUnitTurn();
+        attackingUnit.Attack(targetUnit);
     }
 }

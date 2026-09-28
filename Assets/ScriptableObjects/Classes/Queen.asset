@@ -19,7 +19,7 @@ MonoBehaviour:
     attackRange: 1
     health: 100
     attackDamage: 120
-    defense: 40
+    defense: 30
   classGrowths:
     moveRange: 0
     attackRange: 0

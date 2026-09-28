@@ -18,10 +18,14 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         players[activePlayerIndex].isPlayerTurn = true;
-        players[activePlayerIndex].movesRemaining = movePerTurn;
         turnBanner.alpha = 1;
         bannerText.text = $"{players[activePlayerIndex].playerName}'s Turn";
         turnDisplay.text = $"Turn: {turn}";
+
+        foreach (Player player in players)
+        {
+            player.movesRemaining = movePerTurn;
+        }
     }
 
     // Update is called once per frame

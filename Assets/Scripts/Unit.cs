@@ -107,7 +107,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         {
             transform.position = targetPosition;
 
-            movementLeft -= path[0].moveCost;
+            movementLeft -= path[0].moveCost;   // Is not accounting for diagonal move costs (diagonal move still only counts as 1)
 
             path.RemoveAt(0);
 
@@ -394,7 +394,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     // ---------- IEnumerators ----------
 
     IEnumerator DelayedAttack(Unit playerUnit, Unit targetUnit)
-    {        
+    {
         yield return new WaitUntil(() => !Player.selectedUnit.isMoving);
 
         playerUnit.Attack(targetUnit);

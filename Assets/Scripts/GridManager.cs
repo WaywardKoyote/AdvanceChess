@@ -360,4 +360,30 @@ public class GridManager : MonoBehaviour
 
         return closestTile;
     }
+
+    // Alternate Version of GetClosestAttackTile() specifically for the PlayerAi. Ignores attack range
+    public Tile GetClosestMoveTile(Unit target, Unit attacker)
+    {
+        Tile targetTile = GetTile(target.gridPosition);
+        Tile closestTile = null;
+        int bestDistance = int.MaxValue;
+        int attackRange = attacker.attackRange;
+
+        foreach (Tile tile in map)
+        {
+            if (!tile.inMoveRange || tile.isOccupied) continue;
+
+            int distanceToTarget = GetHeuristic(targetTile, tile);
+
+            int distanceToAttacker = GetHeuristic(GetTile(attacker.gridPosition), tile);
+
+            if (distanceToAttacker < bestDistance)
+            {
+                closestTile = tile;
+                bestDistance = distanceToAttacker;
+            }
+        }
+
+        return closestTile;
+    }
 }
