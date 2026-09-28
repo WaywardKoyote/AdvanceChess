@@ -14,12 +14,14 @@ public class Player : MonoBehaviour
 
     public bool isPlayerTurn = false;
     public bool readyToEndTurn = false;
+    public int movesRemaining = 1;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (gridManager == null) gridManager = FindAnyObjectByType<GridManager>();        
         SnapUnits();
+        ResetUnits();
     }
 
     private void Update()
@@ -32,8 +34,9 @@ public class Player : MonoBehaviour
 
     public void ChangeSelectedUnit(Unit unit)
     {
+        DeselectUnit();
         selectedUnit = unit;
-        // selectedUnit.healthBarVis = 1;   TEST FIRST
+        selectedUnit.healthBarVis.alpha = 1;
         Tile unitTile = gridManager.GetTile(unit.gridPosition);
         unitTile.SelectTile();
         gridManager.HighlightRange(unitTile, unit.movementLeft, unit.attackRange);
@@ -41,7 +44,8 @@ public class Player : MonoBehaviour
 
     public void DeselectUnit()
     {
-        // selectedUnit.healthBarVis = 0;   TEST FIRST
+        if(selectedUnit != null) selectedUnit.healthBarVis.alpha = 0;
+        selectedUnit = null;
     }
 
     private void SnapUnits()
@@ -62,13 +66,17 @@ public class Player : MonoBehaviour
 
         foreach (Unit unit in playerUnits)
         {
+            unit.spriteImage.color = unit.unitColor;
             unit.movementLeft = unit.movementRange;
             unit.attacksLeft = 1;
+            unit.tileStartedTurnOn = gridManager.GetTile(unit.gridPosition);
         }
     }
 
     private void CheckUnits()
     {
+        if(movesRemaining <= 0) readyToEndTurn = true;
+
         foreach (Unit unit in playerUnits)
         {
             if (!unit.IsUnitExpended())

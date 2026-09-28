@@ -3,41 +3,41 @@ using UnityEngine;
 [System.Serializable]
 public struct UnitStats
 {
-    public float speed;
-    public float perception;
-    public float endurance;
-    public float strength;
-    public float luck;
-    public float intellect;
-    public float spirit;
-    public float mastery;
+    public float moveRange;
+    public float attackRange;
+    public float health;
+    public float attackDamage;
+    public float defense;
+    // public float intellect;
+    // public float spirit;
+    // public float mastery;
 
     public const float STAT_VARIANCE = 5f;
 
-    public UnitStats(float newSpeed, float newPerception, float newEndurance, float newStrength, float newLuck, float newIntellect, float newSpirit, float newMastery)
+    public UnitStats(float newMovRange, float newAttRange, float newHealth, float newAttDam, float newDef)
     {
-        speed = newSpeed;
-        perception = newPerception;
-        endurance = newEndurance;
-        strength = newStrength;
-        luck = newLuck;
-        intellect = newIntellect;
-        spirit = newSpirit;
-        mastery = newMastery;
+        moveRange = newMovRange;
+        attackRange = newAttRange;
+        health = newHealth;
+        attackDamage = newAttDam;
+        defense = newDef;
+        // intellect = newIntellect;
+        // spirit = newSpirit;
+        // mastery = newMastery;
     }
 
     public void LevelUpStats(UnitStats classGrowths, UnitStats unitGrowths)
     {
         float rand = Random.value;
 
-        ApplyGrowth(ref speed, classGrowths.speed + unitGrowths.speed, rand);
-        ApplyGrowth(ref perception, classGrowths.perception + unitGrowths.perception, rand);
-        ApplyGrowth(ref endurance, classGrowths.endurance + unitGrowths.endurance, rand);
-        ApplyGrowth(ref strength, classGrowths.strength + unitGrowths.strength, rand);
-        ApplyGrowth(ref luck, classGrowths.luck + unitGrowths.luck, rand);
-        ApplyGrowth(ref intellect, classGrowths.intellect + unitGrowths.intellect, rand);
-        ApplyGrowth(ref spirit, classGrowths.spirit + unitGrowths.spirit, rand);
-        ApplyGrowth(ref mastery, classGrowths.mastery + unitGrowths.mastery, rand);
+        ApplyGrowth(ref moveRange, classGrowths.moveRange + unitGrowths.moveRange, rand);
+        ApplyGrowth(ref attackRange, classGrowths.attackRange + unitGrowths.attackRange, rand);
+        ApplyGrowth(ref health, classGrowths.health + unitGrowths.health, rand);
+        ApplyGrowth(ref attackDamage, classGrowths.attackDamage + unitGrowths.attackDamage, rand);
+        ApplyGrowth(ref defense, classGrowths.defense + unitGrowths.defense, rand);
+        // ApplyGrowth(ref intellect, classGrowths.intellect + unitGrowths.intellect, rand);
+        // ApplyGrowth(ref spirit, classGrowths.spirit + unitGrowths.spirit, rand);
+        // ApplyGrowth(ref mastery, classGrowths.mastery + unitGrowths.mastery, rand);
     }
 
     public static float InitializeStatValue(float baseValue, float growth)

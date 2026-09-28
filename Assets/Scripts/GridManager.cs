@@ -18,6 +18,9 @@ public class GridManager : MonoBehaviour
     [Header("Materials")]
     public Material tileMaterial;
     public Gradient terrainColors;
+    public bool chessBoard;
+    public Material tileLight;
+    public Material tileDark;
 
     // Changed to Awake to put it first. Grid needs to be there before we do any of our other scripts
     void Awake()
@@ -41,19 +44,28 @@ public class GridManager : MonoBehaviour
 
                 Tile tileScript = tile.GetComponent<Tile>();
 
-                // Assign Color
-                tileScript.tileRenderer.material = new Material(tileMaterial);    //Set tile color based on position in grid for checkered pattern: new Material((x+y) % 2 == 0 ? lightMaterial : darkMaterial);
-                int index = y * width + x;
-                tileScript.moveCost = valueMap[index] - '0';    //Converting a list of strings to integers. Subtrack the character '0' to subtrack it's character value (50) and "zero out" all our numbers (character code for 1 is 51, 2 is 52, etc.). Limits movement costs to single digit number only
-                float normalizedCost = (float)tileScript.moveCost / MAX_MOVE_COST;
-                tileScript.originalColor = tileScript.moveCost > MAX_MOVE_COST ? Color.red : terrainColors.Evaluate(normalizedCost);
+                if (chessBoard)
+                {
+                    tileScript.tileRenderer.material = new Material((x + y) % 2 == 0 ? tileLight : tileDark);
+                    tileScript.moveCost = 1;
+                    tileScript.originalColor = tileScript.tileRenderer.material.color;
+                }
+                else    // Use the terrain cost generation method
+                {
+                    // Assign Color & moveCost
+                    tileScript.tileRenderer.material = new Material(tileMaterial);    //Set tile color based on position in grid for checkered pattern: new Material((x+y) % 2 == 0 ? lightMaterial : darkMaterial);
+                    int index = y * width + x;
+                    tileScript.moveCost = valueMap[index] - '0';    //Converting a list of strings to integers. Subtrack the character '0' to subtrack it's character value (50) and "zero out" all our numbers (character code for 1 is 51, 2 is 52, etc.). Limits movement costs to single digit number only
+                    float normalizedCost = (float)tileScript.moveCost / MAX_MOVE_COST;
+                    tileScript.originalColor = tileScript.moveCost > MAX_MOVE_COST ? Color.red : terrainColors.Evaluate(normalizedCost);
+                }
 
                 // Assign Properties
                 tileScript.gridPosition = new Vector2Int(x, y);
                 tileScript.gridManager = this;
                 map[x, y] = tileScript;
 
-                /* //Deprecated. Replaced with 1 line version above
+                /* //Deprecated
                 if ((x+y) % 2 == 0)
                 {
                     renderer.material = new Material(lightMaterial);
@@ -168,6 +180,8 @@ public class GridManager : MonoBehaviour
                 }
             }
         }
+
+        moveTiles.Add(startTile);
 
         HashSet<Tile> attackTiles = new HashSet<Tile>();
         Queue<(Tile tile, int distance)> attackQueue = new Queue<(Tile tile, int distance)>();

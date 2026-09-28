@@ -12,11 +12,13 @@ public class TurnManager : MonoBehaviour
     public CanvasGroup turnBanner;
 
     public float fadeSpeed = 0.5f;
+    public int movePerTurn = 3;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         players[activePlayerIndex].isPlayerTurn = true;
+        players[activePlayerIndex].movesRemaining = movePerTurn;
         turnBanner.alpha = 1;
         bannerText.text = $"{players[activePlayerIndex].playerName}'s Turn";
         turnDisplay.text = $"Turn: {turn}";
@@ -42,6 +44,7 @@ public class TurnManager : MonoBehaviour
 
         currentPlayer.ResetUnits();
         currentPlayer.isPlayerTurn = false;    // Deactivate previous player's Units
+        currentPlayer.movesRemaining = movePerTurn;
         activePlayerIndex = (activePlayerIndex + 1) % players.Length;   // Increase player index mod the length (will equal 0 if at the last player)
         currentPlayer = players[activePlayerIndex];
         currentPlayer.isPlayerTurn = true;     // Activate next player's Units

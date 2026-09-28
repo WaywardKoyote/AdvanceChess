@@ -11,33 +11,34 @@ public class UIManager : MonoBehaviour
     [Header("Unit Info Panel")]
     public CanvasGroup unitInfoPanel;
     public TextMeshProUGUI unitNameText;
-    public TextMeshProUGUI unitLevelText;
+    // public TextMeshProUGUI unitLevelText;
     public TextMeshProUGUI unitHealthText;
-    public TextMeshProUGUI unitItemText;
+    // public TextMeshProUGUI unitItemText;
     public Image unitHealthBar;
     public Image unitPortrait;
 
     [Header("Hover Info Panel")]
     public CanvasGroup hoverInfoPanel;
     public TextMeshProUGUI hoverNameText;
-    public TextMeshProUGUI hoverLevelText;
+    // public TextMeshProUGUI hoverLevelText;
+    public TextMeshProUGUI hoverHealthText;
     public Image hoverHealthBar;
     public Image hoverPortrait;
 
     [Header("StatWindow")]
     public Image healthBar;
-    public Image XPBar;
+    // public Image XPBar;
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI healthText;
-    public TextMeshProUGUI XPText;
-    public TextMeshProUGUI speedText;
-    public TextMeshProUGUI perceptionText;
-    public TextMeshProUGUI strengthText;
-    public TextMeshProUGUI enduranceText;
-    public TextMeshProUGUI luckText;
-    public TextMeshProUGUI intellectText;
-    public TextMeshProUGUI spiritText;
-    public TextMeshProUGUI masteryText;
+    // public TextMeshProUGUI XPText;
+    public TextMeshProUGUI movRangeText;
+    public TextMeshProUGUI attRangeText;
+    public TextMeshProUGUI attDamageText;
+    public TextMeshProUGUI defText;
+    // public TextMeshProUGUI luckText;
+    // public TextMeshProUGUI intellectText;
+    // public TextMeshProUGUI spiritText;
+    // public TextMeshProUGUI masteryText;
 
 
 
@@ -132,8 +133,8 @@ public class UIManager : MonoBehaviour
         Unit unit = Player.selectedUnit;
         unitNameText.text = unit.unitName;
         unitPortrait.sprite = unit.unitPortrait;
-        unitLevelText.text = $"Lvl {unit.level}";
-        unitHealthText.text = $"{unit.health} / {unit.maxHealth}";
+        // unitLevelText.text = $"Lvl {unit.level}";
+        unitHealthText.text = $"{Mathf.RoundToInt(unit.health * 0.1f)} / {Mathf.RoundToInt(unit.maxHealth * 0.1f)}";
         unitHealthBar.fillAmount = (float)unit.health / unit.maxHealth;
     }
 
@@ -151,7 +152,9 @@ public class UIManager : MonoBehaviour
         Unit hoverUnit = Player.hoverUnit;
         hoverNameText.text = hoverUnit.unitName;
         hoverPortrait.sprite = hoverUnit.unitPortrait;
-        hoverLevelText.text = $"Lvl {hoverUnit.level}";
+        hoverPortrait.color = hoverUnit.unitColor;
+        // hoverLevelText.text = $"Lvl {hoverUnit.level}";
+        hoverHealthText.text = $"{Mathf.RoundToInt(hoverUnit.health * 0.1f)} / {Mathf.RoundToInt(hoverUnit.maxHealth * 0.1f)}";
         hoverHealthBar.fillAmount = (float)hoverUnit.health / hoverUnit.maxHealth;
     }
 
@@ -160,17 +163,17 @@ public class UIManager : MonoBehaviour
         Unit unit = Player.selectedUnit;
 
         healthBar.fillAmount = (float)unit.health / unit.maxHealth;
-        XPBar.fillAmount = (float)unit.experience / unit.experienceToLevel;
-        nameText.text = $"{unit.unitName}: Level {unit.level} {unit.unitClass}";
-        healthText.text = $"HP: {unit.health} / {unit.maxHealth}";
-        XPText.text = $"XP: {unit.experience} / {unit.experienceToLevel}";
-        speedText.text = $"Speed: {unit.stats.speed}";
-        perceptionText.text = $"Perception: {unit.stats.perception}";
-        strengthText.text = $"Strength: {unit.stats.strength}";
-        enduranceText.text = $"Endurance: {unit.stats.endurance}";
-        luckText.text = $"Luck: {unit.stats.luck}";
-        intellectText.text = $"Intellect: {unit.stats.intellect}";
-        spiritText.text = $"Spirit: {unit.stats.spirit}";
-        masteryText.text = $"Mastery: {unit.stats.mastery}";
+        // XPBar.fillAmount = (float)unit.experience / unit.experienceToLevel;
+        nameText.text = $"{unit.unitName}: {unit.unitClass.classDescription}";    // nameText.text = $"{unit.unitName}: Level {unit.level} {unit.unitClass}";
+        healthText.text = $"HP: {Mathf.RoundToInt(unit.health * 0.1f)} / {Mathf.RoundToInt(unit.maxHealth * 0.1f)}";
+        // XPText.text = $"XP: {unit.experience} / {unit.experienceToLevel}";
+        movRangeText.text = $"Movement: {unit.stats.moveRange}";
+        attRangeText.text = $"Range: {unit.stats.attackRange}";
+        attDamageText.text = $"Attack: {Mathf.RoundToInt(unit.stats.attackDamage * 0.1f)}";
+        defText.text = $"Defense: {unit.stats.defense}%";
+        // luckText.text = $"Luck: {unit.stats.defense}";
+        // intellectText.text = $"Intellect: {unit.stats.intellect}";
+        // spiritText.text = $"Spirit: {unit.stats.spirit}";
+        // masteryText.text = $"Mastery: {unit.stats.mastery}";
     }
 }

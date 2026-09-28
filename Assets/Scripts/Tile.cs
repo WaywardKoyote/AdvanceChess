@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 
@@ -86,7 +87,7 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
         if (totalCost > selected.movementLeft) return;
 
-        selected.MoveTo(path);
+        selected.MoveTo(path, true);
 
         SelectTile();
 

@@ -1,7 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Collections.Generic;
 using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 
 public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -21,6 +24,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     public Player owner;
 
     public List<Tile> path;
+    public Tile tileStartedTurnOn;
 
     public int maxHealth;
     public int health;
@@ -44,6 +48,10 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     public string unitName;
     public Sprite unitPortrait;
+    public Color unitColor;
+    public Image spriteImage;
+
+    private bool expendAfterMoving = false;
 
     void Start()
     {
@@ -61,7 +69,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         healthBar.fillAmount = (float)health / (float)maxHealth;
     }
 
-    public void MoveTo(List<Tile> newPath)
+    public void MoveTo(List<Tile> newPath, bool expendAfterMove)
     {
 
         if (!owner.isPlayerTurn || newPath == null || newPath.Count == 0) return;
@@ -76,6 +84,11 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         targetPosition = path[0].transform.position;
         gridPosition = path[0].gridPosition;
         isMoving = true;
+
+        if (expendAfterMove)
+        {
+            expendAfterMoving = true;
+        }
 
         /* Refactored
         targetPosition = position;
@@ -106,6 +119,11 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
             else
             {
                 isMoving = false;
+
+                if (expendAfterMoving)
+                {
+                    ExpendUnit();
+                }
 
                 if(!isAI) owner.ChangeSelectedUnit(this);
             }
@@ -141,6 +159,8 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     {
         if (owner.isPlayerTurn && !IsUnitExpended())
         {
+            if (Player.selectedUnit != null && Player.selectedUnit.isMoving) return;
+
             owner.ChangeSelectedUnit(this);
             return;
         }
@@ -183,11 +203,14 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
         int distance = owner.gridManager.GetHeuristic(unitTile, attackerTile);
 
-        if (distance <= playerUnit.attackRange)
+        Tile closestAttackTile = owner.gridManager.GetClosestAttackTile(this, playerUnit);
+
+        if (distance <= playerUnit.attackRange && !this.owner.isPlayerTurn)
         {
             if (playerUnit.attacksLeft > 0)
             {
                 playerUnit.Attack(this);
+                return;
             }
             else
             {
@@ -195,21 +218,33 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
             }
         }
 
-        Tile closestAttackTile = owner.gridManager.GetClosestAttackTile(this, playerUnit);
-
         if (closestAttackTile == null)
         {
             return;
         }
-        
-        List<Tile> path = owner.gridManager.GetPath(attackerTile, closestAttackTile);
 
+        List<Tile> path = owner.gridManager.GetPath(attackerTile, closestAttackTile);
+        
         if (path == null || path.Count == 0)
         {
             return;
         }
 
-        playerUnit.MoveTo(path);
+        if (distance <= (playerUnit.attackRange + playerUnit.movementLeft) && !this.owner.isPlayerTurn)
+        {
+            if (playerUnit.attacksLeft > 0)
+            {
+                playerUnit.MoveTo(path, false);
+                StartCoroutine(DelayedAttack(playerUnit, this));
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        playerUnit.MoveTo(path, true);
     }
 
     public void Heal(int amount)
@@ -226,6 +261,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         health -= amount;
         if (health <= 0)
         {
+            owner.gridManager.GetTile(gridPosition).isOccupied = false;
             owner.playerUnits.Remove(this);
             Destroy(gameObject);
         }
@@ -241,19 +277,40 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         if (distance <= attackRange)
         {
             attacksLeft--;
-            int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(attackDamage - target.physicalDefense, 0, target.maxHealth));
-            float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
-            experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
+            int damageToDeal = Mathf.RoundToInt(CalculateAttDamage() * (1 - target.physicalDefense));       // int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(CalculateAttDamage() * (1 - (target.physicalDefense)), 0, target.maxHealth));
+            // float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
+            // experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
             Debug.Log(this.name + " attacked " + target.name + " for " + damageToDeal.ToString() + " damage. " + target.name + " has " + (target.health - damageToDeal).ToString() + " health left.");
-            target.TakeDamage(attackDamage);
+            
+            if (damageToDeal < target.health)
+            {
+                StartCoroutine(CounterAttack(0.6f, this, target));
+                StartCoroutine(CounterAttack(0.6f, this, target));
+            }
 
+            target.TakeDamage(damageToDeal);
+
+            if (attacksLeft <= 0) ExpendUnit();
+
+            /* Leveling removed.
             experience += experienceToAdd;
 
             if (experience >= experienceToLevel)
             {
                 LevelUp();
             }
+            */
         }
+    }
+
+    public float CalculateAttDamage()
+    {
+        float damage = Random.Range((attackDamage * 0.95f), (attackDamage * 1.05f));
+        damage = damage * ((float)health / (float)maxHealth);
+
+        // switch (unitClass)
+
+        return damage;
     }
 
     public bool IsUnitExpended()
@@ -270,12 +327,12 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     private void UpdateStatValues()
     {
-        movementRange = Mathf.RoundToInt(stats.speed * 0.1f);
-        attackRange = Mathf.RoundToInt(stats.perception * 0.05f);
+        movementRange = Mathf.RoundToInt(stats.moveRange);                                  // movementRange = Mathf.RoundToInt(stats.speed * 0.1f);
+        attackRange = Mathf.RoundToInt(stats.attackRange);                                  // attackRange = Mathf.RoundToInt(stats.perception * 0.05f);
         attackRange = Mathf.Clamp(attackRange, 1, int.MaxValue);
-        maxHealth = 1 + Mathf.RoundToInt(stats.endurance * 0.25f);
-        attackDamage = Mathf.RoundToInt(stats.strength * 0.05f);
-        physicalDefense = Mathf.RoundToInt((stats.endurance * 0.02f) + (stats.strength * 0.01f));
+        maxHealth = Mathf.Clamp(Mathf.RoundToInt(stats.health), 1, int.MaxValue);           // maxHealth = 1 + Mathf.RoundToInt(stats.endurance * 0.25f);
+        attackDamage = Mathf.RoundToInt(stats.attackDamage);                                // attackDamage = Mathf.RoundToInt(stats.strength * 0.05f);
+        physicalDefense = Mathf.RoundToInt(stats.defense * 0.01f);                          // physicalDefense = Mathf.RoundToInt((stats.health * 0.02f) + (stats.attackDamage * 0.01f));
     }
 
     private void LevelUp()
@@ -301,20 +358,24 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         UnitStats growthStats = unitClass.classGrowths;
 
         stats = new UnitStats(
-            UnitStats.InitializeStatValue(baseClassStats.speed, growthStats.speed),
-            UnitStats.InitializeStatValue(baseClassStats.perception, growthStats.perception),
-            UnitStats.InitializeStatValue(baseClassStats.endurance, growthStats.endurance),
-            UnitStats.InitializeStatValue(baseClassStats.strength, growthStats.strength),
-            UnitStats.InitializeStatValue(baseClassStats.luck, growthStats.luck),
-            UnitStats.InitializeStatValue(baseClassStats.intellect, growthStats.intellect),
-            UnitStats.InitializeStatValue(baseClassStats.spirit, growthStats.spirit),
-            UnitStats.InitializeStatValue(baseClassStats.mastery, growthStats.mastery));
+            UnitStats.InitializeStatValue(baseClassStats.moveRange, growthStats.moveRange),
+            UnitStats.InitializeStatValue(baseClassStats.attackRange, growthStats.attackRange),
+            UnitStats.InitializeStatValue(baseClassStats.health, growthStats.health),
+            UnitStats.InitializeStatValue(baseClassStats.attackDamage, growthStats.attackDamage),
+            UnitStats.InitializeStatValue(baseClassStats.defense, growthStats.defense));
+            // UnitStats.InitializeStatValue(baseClassStats.intellect, growthStats.intellect),
+            // UnitStats.InitializeStatValue(baseClassStats.spirit, growthStats.spirit),
+            // UnitStats.InitializeStatValue(baseClassStats.mastery, growthStats.mastery));
     }
 
     public void ExpendUnit()
     {
+        spriteImage.color = Color.gray4;
         movementLeft = 0;
         attacksLeft = 0;
+        owner.DeselectUnit();
+        owner.gridManager.ResetGridHighlights();
+        owner.movesRemaining--;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -328,5 +389,34 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         {
             Player.hoverUnit = null;
         }
+    }
+
+    // ---------- IEnumerators ----------
+
+    IEnumerator DelayedAttack(Unit playerUnit, Unit targetUnit)
+    {        
+        yield return new WaitUntil(() => !Player.selectedUnit.isMoving);
+
+        playerUnit.Attack(targetUnit);
+    }
+
+    IEnumerator DelayedExpend(bool moving)
+    {
+        yield return new WaitUntil(() => !moving);
+
+        ExpendUnit();
+    }
+
+    IEnumerator CounterAttack(float delay, Unit playerUnit, Unit targetUnit)
+    {
+        yield return new WaitForSeconds(delay);
+
+        //Debug.Log("Calculated CounterAttack: " + targetUnit.CalculateAttDamage().ToString());
+
+        int damageToDeal = Mathf.RoundToInt(targetUnit.CalculateAttDamage() * (1 - playerUnit.physicalDefense));       // int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(CalculateAttDamage() * (1 - (target.physicalDefense)), 0, target.maxHealth));
+        // float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
+        // experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
+        Debug.Log(targetUnit.name + " counter attacked " + playerUnit.name + " for " + damageToDeal.ToString() + " damage. " + playerUnit.name + " has " + (playerUnit.health - damageToDeal).ToString() + " health left.");
+        playerUnit.TakeDamage(damageToDeal);
     }
 }

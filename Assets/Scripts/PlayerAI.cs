@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,6 +11,8 @@ public class PlayerAI : MonoBehaviour
     public Unit activeUnit;
     public Unit targetUnit;
 
+    public float thinkingTime = 1f;
+
     public enum AIBehaviours
     {
         Random,
@@ -21,12 +24,14 @@ public class PlayerAI : MonoBehaviour
 
     public AIBehaviours behaviour = AIBehaviours.Random;
 
-    private (int threshold, AIBehaviours behaviour)[] behaviourTable =
+    private (string unitClass, AIBehaviours behaviour)[] behaviourTable =
     {
-        (25, AIBehaviours.Random),
-        (20, AIBehaviours.Dumb),
-        (15, AIBehaviours.Defensive),
-        (10, AIBehaviours.Aggressive)
+        ("Pawn", AIBehaviours.Dumb),
+        ("Rook", AIBehaviours.Aggressive),
+        ("Bishop", AIBehaviours.Smart),
+        ("Knight", AIBehaviours.Defensive),
+        ("Queen", AIBehaviours.Random),
+        ("King", AIBehaviours.Defensive)
     };
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -50,9 +55,7 @@ public class PlayerAI : MonoBehaviour
         {
             if (!activeUnit) activeUnit = units[0];
 
-            CheckBehaviour();
-            HandleUnitTurn();
-            EndActiveUnitTurn();
+            StartCoroutine(TimedTurn(thinkingTime));
         }
     }
 
@@ -169,11 +172,11 @@ public class PlayerAI : MonoBehaviour
 
     private void CheckBehaviour()
     {
-        int unitsLeft = player.playerUnits.Count;
+        string unitsClassName = activeUnit.unitClass.name;
 
         foreach (var entry in behaviourTable)
         {
-            if (unitsLeft > entry.threshold)
+            if (unitsClassName == entry.unitClass)
             {
                 behaviour = entry.behaviour;
                 return;
@@ -254,7 +257,7 @@ public class PlayerAI : MonoBehaviour
 
             if (path != null && path.Count > 0)
             {
-                activeUnit.MoveTo(path);
+                activeUnit.MoveTo(path, true);
             }
             else
             {
@@ -306,5 +309,23 @@ public class PlayerAI : MonoBehaviour
             }
         }
         */
+    }
+
+    // ---------- IEnumerators ----------
+
+    IEnumerator TimedTurn(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        CheckBehaviour();
+        HandleUnitTurn();
+        EndActiveUnitTurn();
+    }
+
+    IEnumerator ActiveUnitTurnLag(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        EndActiveUnitTurn();
     }
 }
