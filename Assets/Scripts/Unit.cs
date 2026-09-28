@@ -370,7 +370,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     public void ExpendUnit()
     {
-        spriteImage.color = Color.gray4;
+        spriteImage.color = Color.gray7;
         movementLeft = 0;
         attacksLeft = 0;
         owner.DeselectUnit();

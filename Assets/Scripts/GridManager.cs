@@ -367,7 +367,6 @@ public class GridManager : MonoBehaviour
         Tile targetTile = GetTile(target.gridPosition);
         Tile closestTile = null;
         int bestDistance = int.MaxValue;
-        int attackRange = attacker.attackRange;
 
         foreach (Tile tile in map)
         {
@@ -375,12 +374,12 @@ public class GridManager : MonoBehaviour
 
             int distanceToTarget = GetHeuristic(targetTile, tile);
 
-            int distanceToAttacker = GetHeuristic(GetTile(attacker.gridPosition), tile);
+            // int distanceToAttacker = GetHeuristic(GetTile(attacker.gridPosition), tile);
 
-            if (distanceToAttacker < bestDistance)
+            if (distanceToTarget < bestDistance)
             {
                 closestTile = tile;
-                bestDistance = distanceToAttacker;
+                bestDistance = distanceToTarget;
             }
         }
 
