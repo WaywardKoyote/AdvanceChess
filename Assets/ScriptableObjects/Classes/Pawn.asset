@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitClass
   className: Pawn
   classDescription: The Front Line
+  critCondition: Attack After Moving Diagonally
   baseStats:
     moveRange: 2
     attackRange: 1
     health: 100
-    attackDamage: 70
-    defense: 10
+    attackDamage: 60
+    defense: 20
   classGrowths:
     moveRange: 0
     attackRange: 0

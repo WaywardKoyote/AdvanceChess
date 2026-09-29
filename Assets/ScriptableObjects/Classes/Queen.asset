@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitClass
   className: Queen
   classDescription: Boss Of The Board
+  critCondition: 'Attack While Below 40% Health '
   baseStats:
     moveRange: 5
     attackRange: 1
     health: 100
     attackDamage: 120
-    defense: 30
+    defense: 50
   classGrowths:
     moveRange: 0
     attackRange: 0

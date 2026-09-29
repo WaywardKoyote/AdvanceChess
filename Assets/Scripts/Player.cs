@@ -16,6 +16,9 @@ public class Player : MonoBehaviour
     public bool readyToEndTurn = false;
     public int movesRemaining = 1;
 
+    public Color playerColor;
+    public Color negativeColor;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

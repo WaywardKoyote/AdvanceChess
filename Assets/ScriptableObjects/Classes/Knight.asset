@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitClass
   className: Knight
   classDescription: Ranged Assault
+  critCondition: Attack Without Moving
   baseStats:
     moveRange: 3
     attackRange: 2
     health: 100
-    attackDamage: 70
-    defense: 0
+    attackDamage: 80
+    defense: 10
   classGrowths:
     moveRange: 0
     attackRange: 0

@@ -5,6 +5,7 @@ public class UnitClass : ScriptableObject
 {
     public string className;
     public string classDescription;
+    public string critCondition;
 
     public UnitStats baseStats;
     public UnitStats classGrowths;

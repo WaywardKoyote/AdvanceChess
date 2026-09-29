@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitClass
   className: Rook
   classDescription: Defensive Tank
+  critCondition: 'Attack at Max Range in a Straight Line. '
   baseStats:
     moveRange: 3
     attackRange: 1
     health: 100
     attackDamage: 80
-    defense: 30
+    defense: 40
   classGrowths:
     moveRange: 0
     attackRange: 0

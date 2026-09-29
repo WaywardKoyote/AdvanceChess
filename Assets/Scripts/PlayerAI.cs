@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class PlayerAI : MonoBehaviour
 {
@@ -235,16 +234,16 @@ public class PlayerAI : MonoBehaviour
 
         if (targetUnit == null)
         {
-            Debug.Log("Target Unit: NULL");
+            // Debug.Log("Target Unit: NULL");
             activeUnit.ExpendUnit();
             return;
         }
-        Debug.Log("Target Unit: " + targetUnit.name);
+        // Debug.Log("Target Unit: " + targetUnit.name);
         int distance = gridManager.GetHeuristic(gridManager.GetTile(activeUnit.gridPosition), gridManager.GetTile(targetUnit.gridPosition));
 
         if (distance <= activeUnit.attackRange && activeUnit.attacksLeft > 0)
         {
-            Debug.Log("Target In Attack Range");
+            // Debug.Log("Target In Attack Range");
             activeUnit.Attack(targetUnit);
             return;
         }
@@ -261,14 +260,14 @@ public class PlayerAI : MonoBehaviour
 
         if (targetTile != null)
         {
-            Debug.Log("TargetTile: " + targetTile.name);
+            // Debug.Log("TargetTile: " + targetTile.name);
             List<Tile> path = gridManager.GetPath(gridManager.GetTile(activeUnit.gridPosition), targetTile);
 
             if (path != null && path.Count > 0)
             {
                 if(distance <= (activeUnit.attackRange + activeUnit.movementLeft) && activeUnit.attacksLeft > 0)
                 {
-                    Debug.Log("Target in Moveable Range");
+                    // Debug.Log("Target in Moveable Range");
                     activeUnit.MoveTo(path, false);
                     StartCoroutine(DelayedAttack(activeUnit, targetUnit));
                     return;
@@ -288,7 +287,7 @@ public class PlayerAI : MonoBehaviour
         }
         else
         {
-            Debug.Log("Target Tile: NULL");
+            // Debug.Log("Target Tile: NULL");
             activeUnit.movementLeft = 0;
             activeUnit.attacksLeft = 0;
         }

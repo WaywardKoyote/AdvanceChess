@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitClass
   className: King
   classDescription: Protect At All Cost
+  critCondition: Attack While Below 60% Health
   baseStats:
     moveRange: 2
     attackRange: 2
     health: 100
-    attackDamage: 80
-    defense: 30
+    attackDamage: 70
+    defense: 60
   classGrowths:
     moveRange: 0
     attackRange: 0

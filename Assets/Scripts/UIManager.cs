@@ -1,12 +1,13 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
     public InputSystem_Actions inputActions;
     public CanvasGroup managerMenu;
+    public CanvasGroup managerMenuButton;
     public CanvasGroup unitActionMenu;
 
     [Header("Unit Info Panel")]
@@ -20,6 +21,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Hover Info Panel")]
     public CanvasGroup hoverInfoPanel;
+    public Image hoverInfoImage;
     public TextMeshProUGUI hoverNameText;
     // public TextMeshProUGUI hoverLevelText;
     public TextMeshProUGUI hoverHealthText;
@@ -40,6 +42,7 @@ public class UIManager : MonoBehaviour
     // public TextMeshProUGUI intellectText;
     // public TextMeshProUGUI spiritText;
     // public TextMeshProUGUI masteryText;
+    public TextMeshProUGUI critMethod;
 
     [Header("EndScreen")]
     public CanvasGroup endScreen;
@@ -63,17 +66,13 @@ public class UIManager : MonoBehaviour
             if (CheckIfMenuOpen(managerMenu))
             {
                 CloseMenu(managerMenu);
+                OpenMenu(managerMenuButton);
             }
             else
             {
+                CloseMenu(managerMenuButton);
                 OpenMenu(managerMenu);
             }
-        }
-
-        if (inputActions.Player.PauseMenu.WasPressedThisFrame())
-        {
-            Debug.Log("Quitting");
-            Application.Quit();
         }
 
         if (Player.selectedUnit && !CheckIfMenuOpen(managerMenu))
@@ -139,6 +138,7 @@ public class UIManager : MonoBehaviour
         Unit unit = Player.selectedUnit;
         unitNameText.text = unit.unitName;
         unitPortrait.sprite = unit.unitPortrait;
+        unitPortrait.color = unit.unitColor;
         // unitLevelText.text = $"Lvl {unit.level}";
         unitHealthText.text = $"{Mathf.RoundToInt(unit.health * 0.1f)} / {Mathf.RoundToInt(unit.maxHealth * 0.1f)}";
         unitHealthBar.fillAmount = (float)unit.health / unit.maxHealth;
@@ -153,10 +153,23 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void MainMenuButton()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void QuitGameButton()
+    {
+        Debug.Log("Quitting");
+        Application.Quit();
+    }
+
     public void DisplayHoverInfo()
     {
         Unit hoverUnit = Player.hoverUnit;
+        hoverInfoImage.color = hoverUnit.owner.negativeColor;
         hoverNameText.text = hoverUnit.unitName;
+        hoverNameText.color = hoverUnit.owner.playerColor;
         hoverPortrait.sprite = hoverUnit.unitPortrait;
         hoverPortrait.color = hoverUnit.unitColor;
         // hoverLevelText.text = $"Lvl {hoverUnit.level}";
@@ -181,6 +194,7 @@ public class UIManager : MonoBehaviour
         // intellectText.text = $"Intellect: {unit.stats.intellect}";
         // spiritText.text = $"Spirit: {unit.stats.spirit}";
         // masteryText.text = $"Mastery: {unit.stats.mastery}";
+        critMethod.text = $"{unit.unitClass.critCondition}";
     }
 
     public void EndScreen(bool win)

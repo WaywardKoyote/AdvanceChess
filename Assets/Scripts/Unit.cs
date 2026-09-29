@@ -1,10 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
 public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -55,6 +53,9 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     private UIManager uiManager;
     private CameraController camControl;
+
+    public ParticleSystem hitParticles;
+    public AudioSource damageSFX;
 
     void Start()
     {
@@ -264,6 +265,9 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     public void TakeDamage(int amount)
     {
         health -= amount;
+        hitParticles.Play();
+        damageSFX.Play();
+
         if (health <= 0)
         {
             if(this.unitClass.name == "King")
@@ -276,6 +280,8 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                 {
                     uiManager.EndScreen(false);
                 }
+
+                camControl.gameOver = true;
             }
             owner.gridManager.GetTile(gridPosition).isOccupied = false;
             owner.playerUnits.Remove(this);
@@ -292,15 +298,28 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
         if (distance <= attackRange)
         {
+            int damageToDeal;
+
             attacksLeft--;
-            int damageToDeal = Mathf.RoundToInt(CalculateAttDamage() * (1 - target.physicalDefense));       // int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(CalculateAttDamage() * (1 - (target.physicalDefense)), 0, target.maxHealth));
+            float attackDamage = CalculateAttDamage() * (1f - target.physicalDefense);       // int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(CalculateAttDamage() * (1 - (target.physicalDefense)), 0, target.maxHealth));
             // float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
             // experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
-            Debug.Log(this.name + " attacked " + target.name + " for " + damageToDeal.ToString() + " damage. " + target.name + " has " + (target.health - damageToDeal).ToString() + " health left.");
-            
-            if (damageToDeal < target.health)
+
+            if (CritCheck())
             {
-                StartCoroutine(CounterAttack(0.5f, this, target));
+                damageToDeal = Mathf.RoundToInt(attackDamage * 1.5f);
+                Debug.Log("CRITICAL HIT");
+            }
+            else
+            {
+                damageToDeal = Mathf.RoundToInt(attackDamage);
+            }
+
+                Debug.Log(this.name + " attacked " + target.name + " for " + damageToDeal.ToString() + " damage. " + target.name + " has " + (target.health - damageToDeal).ToString() + " health left.");
+            
+            if (damageToDeal < target.health && distance <= 1)
+            {
+                StartCoroutine(CounterAttack(1f, this, target));
             }
 
             target.TakeDamage(damageToDeal);
@@ -323,9 +342,83 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         float damage = Random.Range((attackDamage * 0.95f), (attackDamage * 1.05f));
         damage = damage * ((float)health / (float)maxHealth);
 
-        // switch (unitClass)
-
         return damage;
+    }
+
+    public bool CritCheck()
+    {
+        bool critcalHit = false;
+
+        Debug.Log("tileStartedTurnOn: " + tileStartedTurnOn.gridPosition.ToString() + " / currentTile: " + gridPosition.ToString());
+
+        switch (unitClass.name)
+        {
+            case "Pawn":
+                {
+                    int dx = Mathf.Abs(tileStartedTurnOn.gridPosition.x - gridPosition.x);
+                    int dy = Mathf.Abs(tileStartedTurnOn.gridPosition.y - gridPosition.y);
+                    Debug.Log("Pawn, dx: " + dx.ToString() + ", dy: " + dy.ToString());
+                    if (dx == 1 && dy == 1) // If the difference of both is 1, it's diagonal
+                    {
+                        critcalHit = true;
+                    }
+                }
+                break;
+            case "Rook":
+                {
+                    int dx = Mathf.Abs(tileStartedTurnOn.gridPosition.x - gridPosition.x);
+                    int dy = Mathf.Abs(tileStartedTurnOn.gridPosition.y - gridPosition.y);
+                    Debug.Log("Rook, dx: " + dx.ToString() + ", dy: " + dy.ToString());
+                    if ((dx == 0 && dy == 3) || (dx == 3 && dy == 0)) // If the difference of either is 0, it's straight. If the difference of the other is 3, it's at max range
+                    {
+                        critcalHit = true;
+                    }
+                }
+                break;
+            case "Bishop":
+                {
+                    int dx = Mathf.Abs(tileStartedTurnOn.gridPosition.x - gridPosition.x);
+                    int dy = Mathf.Abs(tileStartedTurnOn.gridPosition.y - gridPosition.y);
+                    Debug.Log("Bishop, dx: " + dx.ToString() + ", dy: " + dy.ToString());
+                    if (dx == 2 && dy == 2) // If the difference of both is 2, it's diagonal and at max range
+                    {
+                        critcalHit = true;
+                    }
+                }
+                break;
+            case "Knight":
+                {
+                    Debug.Log("Knight, tileStartedTurnOn: " + tileStartedTurnOn.gridPosition.ToString() + ", currentTile: " + gridPosition.ToString());
+                    if (tileStartedTurnOn.gridPosition == gridPosition) // If the current gridPosition is the same as the starting gridPosition, the Unit didn't move
+                    {
+                        critcalHit = true;
+                    }
+                }
+                break;
+            case "Queen":
+                {
+                    Debug.Log("Queen, health: " + health.ToString());
+                    if (health <= 40)
+                    {
+                        critcalHit = true;
+                    }
+                }
+                break;
+            case "King":
+                {
+                    Debug.Log("King, health: " + health.ToString());
+                    if (health <= 60)
+                    {
+                        critcalHit = true;
+                    }
+                }
+                break;
+            default:
+                Debug.Log("What class is this Unit?");
+                break;
+        }
+
+        return critcalHit;
     }
 
     public bool IsUnitExpended()
@@ -410,7 +503,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     IEnumerator DelayedAttack(Unit playerUnit, Unit targetUnit)
     {
-        yield return new WaitUntil(() => playerUnit.isMoving);
+        yield return new WaitUntil(() => !playerUnit.isMoving);
 
         playerUnit.Attack(targetUnit);
     }

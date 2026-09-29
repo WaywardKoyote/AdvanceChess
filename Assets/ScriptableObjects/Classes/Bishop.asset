@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitClass
   className: Bishop
   classDescription: Glass Cannon
+  critCondition: Attack at Max Range Diagonally
   baseStats:
     moveRange: 4
     attackRange: 1
     health: 100
-    attackDamage: 110
+    attackDamage: 90
     defense: 0
   classGrowths:
     moveRange: 0

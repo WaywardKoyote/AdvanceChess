@@ -1,9 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
 
 public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IComparable<Tile>
 {

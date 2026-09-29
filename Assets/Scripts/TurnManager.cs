@@ -1,5 +1,7 @@
-using UnityEngine;
 using TMPro;
+using Unity.Multiplayer.PlayMode;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class TurnManager : MonoBehaviour
 {
@@ -10,6 +12,7 @@ public class TurnManager : MonoBehaviour
     public TextMeshProUGUI turnDisplay;
     public TextMeshProUGUI bannerText;
     public CanvasGroup turnBanner;
+    public Image turnBannerImage;
 
     public float fadeSpeed = 0.5f;
     public int movePerTurn = 3;
@@ -20,6 +23,8 @@ public class TurnManager : MonoBehaviour
         players[activePlayerIndex].isPlayerTurn = true;
         turnBanner.alpha = 1;
         bannerText.text = $"{players[activePlayerIndex].playerName}'s Turn";
+        bannerText.color = players[activePlayerIndex].negativeColor;
+        turnBannerImage.color = players[activePlayerIndex].playerColor;
         turnDisplay.text = $"Turn: {turn}";
 
         foreach (Player player in players)
@@ -70,6 +75,8 @@ public class TurnManager : MonoBehaviour
         }
 
         bannerText.text = $"{currentPlayer.playerName}'s Turn";
+        bannerText.color = currentPlayer.negativeColor;
+        turnBannerImage.color = currentPlayer.playerColor;
         turnBanner.alpha = 1;
     }
 }
