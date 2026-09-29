@@ -13,6 +13,8 @@ public class PlayerAI : MonoBehaviour
     public bool nextMove;
     public float thinkingTime = 1f;
 
+    public TurnManager turnManager;
+
     public enum AIBehaviours
     {
         Random,
@@ -54,6 +56,13 @@ public class PlayerAI : MonoBehaviour
     {
         if (player.isPlayerTurn)
         {
+            /*
+            int index;
+            if (turnManager.turn <= 3)
+                index = Random.Range(0, 8);
+            else
+                index = Random.Range(0, units.Count);
+            */
             if (!activeUnit) activeUnit = units[0];
 
             if (nextMove)
@@ -300,6 +309,7 @@ public class PlayerAI : MonoBehaviour
 
     private void EndActiveUnitTurn()
     {
+
         if (activeUnit != null)
         {
             units.Remove(activeUnit);
@@ -344,7 +354,7 @@ public class PlayerAI : MonoBehaviour
 
         CheckBehaviour();
         HandleUnitTurn();
-        StartCoroutine(ActiveUnitTurnLag());
+        StartCoroutine(ActiveUnitTurnLag());// StartCoroutine(ActiveUnitTurnLag());
     }
 
     IEnumerator ActiveUnitTurnLag()

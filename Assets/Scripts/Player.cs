@@ -78,7 +78,7 @@ public class Player : MonoBehaviour
 
     private void CheckUnits()
     {
-        if(movesRemaining <= 0) readyToEndTurn = true;
+        // if(movesRemaining <= 0) readyToEndTurn = true;
 
         foreach (Unit unit in playerUnits)
         {

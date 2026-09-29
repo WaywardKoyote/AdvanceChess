@@ -265,8 +265,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     public void TakeDamage(int amount)
     {
         health -= amount;
-        hitParticles.Play();
-        damageSFX.Play();
 
         if (health <= 0)
         {
@@ -305,22 +303,29 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
             // float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
             // experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
 
+            Debug.Log("Def " + target.physicalDefense.ToString());
+            Debug.Log(attackDamage.ToString());
+
             if (CritCheck())
             {
                 damageToDeal = Mathf.RoundToInt(attackDamage * 1.5f);
-                Debug.Log("CRITICAL HIT");
+                // Debug.Log("CRITICAL HIT");
             }
             else
             {
                 damageToDeal = Mathf.RoundToInt(attackDamage);
             }
 
-                Debug.Log(this.name + " attacked " + target.name + " for " + damageToDeal.ToString() + " damage. " + target.name + " has " + (target.health - damageToDeal).ToString() + " health left.");
+                // Debug.Log(this.name + " attacked " + target.name + " for " + damageToDeal.ToString() + " damage. " + target.name + " has " + (target.health - damageToDeal).ToString() + " health left.");
             
             if (damageToDeal < target.health && distance <= 1)
             {
                 StartCoroutine(CounterAttack(1f, this, target));
             }
+
+            hitParticles.transform.position = target.transform.position;
+            hitParticles.Play();
+            damageSFX.Play();
 
             target.TakeDamage(damageToDeal);
 
@@ -349,15 +354,12 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     {
         bool critcalHit = false;
 
-        Debug.Log("tileStartedTurnOn: " + tileStartedTurnOn.gridPosition.ToString() + " / currentTile: " + gridPosition.ToString());
-
         switch (unitClass.name)
         {
             case "Pawn":
                 {
                     int dx = Mathf.Abs(tileStartedTurnOn.gridPosition.x - gridPosition.x);
                     int dy = Mathf.Abs(tileStartedTurnOn.gridPosition.y - gridPosition.y);
-                    Debug.Log("Pawn, dx: " + dx.ToString() + ", dy: " + dy.ToString());
                     if (dx == 1 && dy == 1) // If the difference of both is 1, it's diagonal
                     {
                         critcalHit = true;
@@ -368,7 +370,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                 {
                     int dx = Mathf.Abs(tileStartedTurnOn.gridPosition.x - gridPosition.x);
                     int dy = Mathf.Abs(tileStartedTurnOn.gridPosition.y - gridPosition.y);
-                    Debug.Log("Rook, dx: " + dx.ToString() + ", dy: " + dy.ToString());
                     if ((dx == 0 && dy == 3) || (dx == 3 && dy == 0)) // If the difference of either is 0, it's straight. If the difference of the other is 3, it's at max range
                     {
                         critcalHit = true;
@@ -379,7 +380,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                 {
                     int dx = Mathf.Abs(tileStartedTurnOn.gridPosition.x - gridPosition.x);
                     int dy = Mathf.Abs(tileStartedTurnOn.gridPosition.y - gridPosition.y);
-                    Debug.Log("Bishop, dx: " + dx.ToString() + ", dy: " + dy.ToString());
                     if (dx == 2 && dy == 2) // If the difference of both is 2, it's diagonal and at max range
                     {
                         critcalHit = true;
@@ -388,7 +388,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                 break;
             case "Knight":
                 {
-                    Debug.Log("Knight, tileStartedTurnOn: " + tileStartedTurnOn.gridPosition.ToString() + ", currentTile: " + gridPosition.ToString());
                     if (tileStartedTurnOn.gridPosition == gridPosition) // If the current gridPosition is the same as the starting gridPosition, the Unit didn't move
                     {
                         critcalHit = true;
@@ -397,7 +396,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                 break;
             case "Queen":
                 {
-                    Debug.Log("Queen, health: " + health.ToString());
                     if (health <= 40)
                     {
                         critcalHit = true;
@@ -406,7 +404,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                 break;
             case "King":
                 {
-                    Debug.Log("King, health: " + health.ToString());
                     if (health <= 60)
                     {
                         critcalHit = true;
@@ -440,7 +437,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         attackRange = Mathf.Clamp(attackRange, 1, int.MaxValue);
         maxHealth = Mathf.Clamp(Mathf.RoundToInt(stats.health), 1, int.MaxValue);           // maxHealth = 1 + Mathf.RoundToInt(stats.endurance * 0.25f);
         attackDamage = Mathf.RoundToInt(stats.attackDamage);                                // attackDamage = Mathf.RoundToInt(stats.strength * 0.05f);
-        physicalDefense = Mathf.RoundToInt(stats.defense * 0.01f);                          // physicalDefense = Mathf.RoundToInt((stats.health * 0.02f) + (stats.attackDamage * 0.01f));
+        physicalDefense = stats.defense * 0.01f;                          // physicalDefense = Mathf.RoundToInt((stats.health * 0.02f) + (stats.attackDamage * 0.01f));
     }
 
     private void LevelUp()
@@ -519,12 +516,14 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
     {
         yield return new WaitForSeconds(delay);
 
-        //Debug.Log("Calculated CounterAttack: " + targetUnit.CalculateAttDamage().ToString());
-
         int damageToDeal = Mathf.RoundToInt(targetUnit.CalculateAttDamage() * (1 - playerUnit.physicalDefense));       // int damageToDeal = Mathf.RoundToInt(Mathf.Clamp(CalculateAttDamage() * (1 - (target.physicalDefense)), 0, target.maxHealth));
         // float experienceToAdd = target.health <= damageToDeal ? attackDamage * 10 : attackDamage;
         // experienceToAdd *= Mathf.Clamp(10 - (level - target.level), 0, 10);
-        Debug.Log(targetUnit.name + " counter attacked " + playerUnit.name + " for " + damageToDeal.ToString() + " damage. " + playerUnit.name + " has " + (playerUnit.health - damageToDeal).ToString() + " health left.");
+        
+        targetUnit.hitParticles.transform.position = playerUnit.transform.position;
+        hitParticles.Play();
+        damageSFX.Play();
+
         playerUnit.TakeDamage(damageToDeal);
     }
 }
