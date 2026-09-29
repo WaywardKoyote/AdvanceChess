@@ -1,4 +1,5 @@
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,6 +40,11 @@ public class UIManager : MonoBehaviour
     // public TextMeshProUGUI intellectText;
     // public TextMeshProUGUI spiritText;
     // public TextMeshProUGUI masteryText;
+
+    [Header("EndScreen")]
+    public CanvasGroup endScreen;
+    public CanvasGroup winBanner;
+    public CanvasGroup loseBanner;
 
 
 
@@ -175,5 +181,21 @@ public class UIManager : MonoBehaviour
         // intellectText.text = $"Intellect: {unit.stats.intellect}";
         // spiritText.text = $"Spirit: {unit.stats.spirit}";
         // masteryText.text = $"Mastery: {unit.stats.mastery}";
+    }
+
+    public void EndScreen(bool win)
+    {
+        endScreen.alpha = 1;
+        endScreen.interactable = true;
+        endScreen.blocksRaycasts = true;
+
+        if (win)
+        {
+            winBanner.alpha = 1;
+        }
+        else
+        {
+            loseBanner.alpha = 1;
+        }
     }
 }

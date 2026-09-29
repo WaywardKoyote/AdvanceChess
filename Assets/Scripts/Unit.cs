@@ -53,12 +53,18 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     private bool expendAfterMoving = false;
 
+    private UIManager uiManager;
+    private CameraController camControl;
+
     void Start()
     {
         InitializeStats();
         UpdateStatValues();
         movementLeft = movementRange;
         health = maxHealth;
+
+        uiManager = FindAnyObjectByType<UIManager>();
+        camControl = FindAnyObjectByType<CameraController>();
     }
     
     // Update is called once per frame
@@ -71,7 +77,6 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     public void MoveTo(List<Tile> newPath, bool expendAfterMove)
     {
-
         if (!owner.isPlayerTurn || newPath == null || newPath.Count == 0) return;
 
         Tile startTile = owner.gridManager.GetTile(gridPosition);
@@ -125,7 +130,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
                     ExpendUnit();
                 }
 
-                if(!isAI) owner.ChangeSelectedUnit(this);
+                if(!isAI && attacksLeft > 0) owner.ChangeSelectedUnit(this);
             }
         }
 
@@ -261,6 +266,17 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
         health -= amount;
         if (health <= 0)
         {
+            if(this.unitClass.name == "King")
+            {
+                if (this.isAI)
+                {
+                    uiManager.EndScreen(true);
+                }
+                else
+                {
+                    uiManager.EndScreen(false);
+                }
+            }
             owner.gridManager.GetTile(gridPosition).isOccupied = false;
             owner.playerUnits.Remove(this);
             Destroy(gameObject);
@@ -284,8 +300,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
             
             if (damageToDeal < target.health)
             {
-                StartCoroutine(CounterAttack(0.6f, this, target));
-                StartCoroutine(CounterAttack(0.6f, this, target));
+                StartCoroutine(CounterAttack(0.5f, this, target));
             }
 
             target.TakeDamage(damageToDeal);
@@ -395,7 +410,7 @@ public class Unit : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IP
 
     IEnumerator DelayedAttack(Unit playerUnit, Unit targetUnit)
     {
-        yield return new WaitUntil(() => !Player.selectedUnit.isMoving);
+        yield return new WaitUntil(() => playerUnit.isMoving);
 
         playerUnit.Attack(targetUnit);
     }
